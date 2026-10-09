@@ -665,7 +665,10 @@
     let isNavigatingByVoice = false;
 
     function getTargetScrollTop(row) {
-        return row.offsetTop - (subContainer.clientHeight / 2) + (row.clientHeight / 2);
+        // Offset relative to the scroll container itself
+        const rowOffsetTop = row.offsetTop - subContainer.offsetTop;
+        // Centers the active line directly in the middle of the available scrolling viewport
+        return rowOffsetTop - (subContainer.clientHeight / 2) + (row.clientHeight / 2);
     }
 
     function forceActiveRow(targetIndex) {
