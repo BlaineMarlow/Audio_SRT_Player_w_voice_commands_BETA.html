@@ -184,10 +184,6 @@
 </head>
 <body>
 
-<!-- <div id="voice-debug-counter" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.85); color: #00ffcc; padding: 30px 50px; font-size: 64px; font-weight: bold; z-index: 99999; border-radius: 12px; pointer-events: none; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-    Next: <span id="counter-val">0</span>
-</div> -->
-
 <div class="file-tray" id="controlsBar">
     <div class="tray-top-row">
         <button id="toggle-file-tray">minimize</button>
@@ -278,7 +274,6 @@
     const filterBtn = document.getElementById('filter-btn');
     const copyCcBtn = document.getElementById('copy-cc-btn');
     const playBar = document.getElementById('playBar');
-    const playIcon = document.getElementById('playIcon');
 
     const ytUrlInput = document.getElementById('ytUrlInput');
     const pasteYtBtn = document.getElementById('pasteYtBtn');
@@ -289,42 +284,13 @@
     let ytPlayer = null;
     let ytApiReady = false;
 
-    // Helper to supply a valid HTTPS/HTTP origin for YouTube IFrame API compliance
     function getValidOrigin() {
         return window.location.origin;
     }
 
-    loadYtBtn.addEventListener('click', () => {
-        const videoId = extractYouTubeVideoId(ytUrlInput.value.trim());
-        if (!videoId) {
-            alert('Invalid YouTube URL or Video ID.');
-            return;
-        }
-
-        ytContainer.style.display = 'block';
-        subContainer.classList.add('yt-active');
-
-        if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-            ytPlayer.loadVideoById(videoId);
-        } else if (ytApiReady) {
-            ytPlayer = new YT.Player('youtube-player', {
-                videoId: videoId,
-                host: 'https://www.youtube-nocookie.com',
-                playerVars: {
-                    'playsinline': 1,
-                    'controls': 1,
-                    'origin': getValidOrigin(),
-                    'enablejsapi': 1,
-                    'widget_referrer': window.location.href
-                }
-            });
-        }
-    });
-
     // Load YouTube API callback
     window.onYouTubeIframeAPIReady = function() {
         ytApiReady = true;
-        logDebug('YT API READY (Origin: ' + getValidOrigin() + ')');
     };
 
     function extractYouTubeVideoId(url) {
@@ -367,19 +333,11 @@
                     'widget_referrer': originVal
                 },
                 events: {
-                    'onReady': (event) => {
-                        console.log('YT PLAYER READY');
-                    },
                     'onStateChange': (event) => {
-                        console.log('YT STATE CHANGE: ' + event.data);
-                    },
-                    'onError': (event) => {
-                        console.log('YT ERROR CODE: ' + event.data);
+                        updatePlaybackProgress();
                     }
                 }
             });
-        } else {
-            console.log('ERROR: YT API Not Ready Yet');
         }
     });
 
@@ -431,7 +389,7 @@
         });
     }
 
-    // Centralized Audio/Video Manager (Single Source of Truth)
+    // Centralized Audio/Video Manager
     const AudioManager = {
         play() {
             if (ytPlayer && typeof ytPlayer.playVideo === 'function' && ytContainer.style.display !== 'none') {
@@ -519,14 +477,12 @@
         }
     });
 
-    // Remove Audio Handler
     document.getElementById('removeAudioBtn').addEventListener('click', () => {
         audioPlayer.src = '';
         audioFile.value = '';
         localStorage.removeItem('audio_name');
     });
 
-    // Remove SRT 1 Handler
     document.getElementById('removeSrt1Btn').addEventListener('click', () => {
         subs1 = [];
         srtFile1.value = '';
@@ -535,7 +491,6 @@
         buildTimeline();
     });
 
-    // Remove SRT 2 Handler
     document.getElementById('removeSrt2Btn').addEventListener('click', () => {
         subs2 = [];
         srtFile2.value = '';
@@ -936,7 +891,7 @@
         });
     });
 
-    // --- VOICE COMMAND INTEGRATION ---
+    // Voice Command Integration
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
@@ -1013,17 +968,7 @@
         recognition.onresult = (event) => {
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const transcript = event.results[i][0].transcript.trim().toLowerCase();
-                console.log("Raw result:", transcript);
                 if (event.results[i].isFinal) {
-                    console.log("Heard:", transcript);
-
-                    if (transcript.includes("next")) {
-                        const counterEl = document.getElementById('counter-val');
-                        if (counterEl) {
-                            counterEl.textContent = parseInt(counterEl.textContent || '0') + 1;
-                        }
-                    }
-
                     if (isListeningActive) {
                         const now = Date.now();
                         if (window._lastVoiceTime && (now - window._lastVoiceTime < 600)) return;
