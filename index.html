@@ -496,16 +496,23 @@
         // Read caption track list directly from the embedded YouTube player
         setTimeout(() => {
             try {
-                const trackList = ytPlayer.getOption('captions', 'tracklist') || [];
-                if (trackList.length > 0) {
+                // 1. Inspect what methods exist on ytPlayer
+                console.log("ytPlayer object:", ytPlayer);
+                
+                // 2. Try fetching tracklist and log the result
+                const trackList = ytPlayer.getOption('captions', 'tracklist');
+                console.log("Raw trackList output:", trackList);
+
+                if (trackList && trackList.length > 0) {
                     availableCaptions = trackList;
                     renderCaptionList(availableCaptions);
                 } else {
-                    srtTrackList.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px;">No captions available for this video.</div>';
+                    srtTrackList.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px;">No captions available in getOption.</div>';
                 }
             } catch (err) {
-                console.error('Native track list error:', err);
-                srtTrackList.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px;">Load the video player first, then tap Extract SRT.</div>';
+                // 3. Log the exact error object
+                console.error("Diagnostic catch error:", err);
+                srtTrackList.innerHTML = `<div style="text-align: center; color: #ff4d4d; padding: 20px;">Error: ${err.message}</div>`;
             }
         }, 800);
     });
