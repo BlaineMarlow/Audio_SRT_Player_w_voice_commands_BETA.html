@@ -18,5 +18,14 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "file_handlers": [
+    {
+      "action": "./index.html?v=2",
+      "accept": {
+        "application/x-subrip": [".srt"],
+        "text/plain": [".srt", ".txt"]
+      }
+    }
   ]
 }
