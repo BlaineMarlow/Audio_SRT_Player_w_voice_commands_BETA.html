@@ -14,7 +14,7 @@
             left: 0;
             width: 100%;
             box-sizing: border-box;
-            background: #1e1e1ef0;
+            background: #1e1e1e;
             padding: 10px 15px;
             display: flex;
             flex-direction: column; /* Stack rows vertically */
@@ -274,14 +274,6 @@
             padding: 2px 6px;
             border-radius: 4px;
         }
-
-        .downsub-frame {
-            flex: 1;
-            width: 100%;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            background: #fff;
-        }
     </style>
 </head>
 <body>
@@ -309,10 +301,6 @@
             <button class="remove-btn" id="removeYtBtn" title="Remove YouTube Video">&#x2715;</button>
         </div>
     </div>
-
-    <div class="file-row">
-        <button class="yt-extract-btn" id="openDownsubModalBtn" type="button" style="width: 100%;">DownSub</button>
-    </div>
     
     <div class="file-row">
         <label>SRT 1 (Top): <input type="file" id="srtFile1" accept=".srt"></label>
@@ -327,17 +315,6 @@
 
 <div id="youtube-container">
     <div id="youtube-player"></div>
-</div>
-
-<!-- DownSub In-App Modal Overlay -->
-<div id="downsub-modal" class="modal-overlay">
-    <div class="modal-card" style="height: 80vh;">
-        <div class="modal-header">
-            <span class="modal-title">DownSub Viewer</span>
-            <button class="modal-close" id="closeDownsubModalBtn">&#x2715;</button>
-        </div>
-        <iframe id="downsubFrame" class="downsub-frame" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads"></iframe>
-    </div>
 </div>
 
 <div id="subtitle-container"></div>
@@ -1452,26 +1429,6 @@
     } else {
         document.getElementById('voice-status').style.display = 'none';
     }
-
-    const downsubModal = document.getElementById('downsub-modal');
-    const closeDownsubModalBtn = document.getElementById('closeDownsubModalBtn');
-    const downsubFrame = document.getElementById('downsubFrame');
-    const openDownsubModalBtn = document.getElementById('openDownsubModalBtn');
-
-    openDownsubModalBtn.addEventListener('click', () => {
-        const rawUrl = ytUrlInput.value.trim();
-        if (!rawUrl) {
-            alert('Please paste a YouTube URL first.');
-            return;
-        }
-        downsubFrame.src = `https://downsub.com/?url=${encodeURIComponent(rawUrl)}`;
-        downsubModal.style.display = 'flex';
-    });
-
-    closeDownsubModalBtn.addEventListener('click', () => {
-        downsubModal.style.display = 'none';
-        downsubFrame.src = 'about:blank';
-    });
 </script>
 
 </body>
