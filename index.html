@@ -496,16 +496,30 @@
         // Read caption track list directly from the embedded YouTube player
         setTimeout(() => {
             try {
-                const trackList = ytPlayer.getOption('captions', 'tracklist') || [];
-                if (trackList.length > 0) {
-                    availableCaptions = trackList;
-                    renderCaptionList(availableCaptions);
-                } else {
-                    srtTrackList.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px;">No captions available for this video.</div>';
+                console.log("=== YOUTUBE CAPTION DIAGNOSTIC ===");
+                
+                // 1. Check if ytPlayer object exists
+                console.log("ytPlayer exists?", !!ytPlayer);
+                
+                if (ytPlayer) {
+                    // 2. Log all available functions on the player object
+                    const methods = Object.keys(ytPlayer).filter(k => typeof ytPlayer[k] === 'function');
+                    console.log("Available ytPlayer methods:", methods);
+                    
+                    // 3. Safely test getOption if it exists
+                    if (typeof ytPlayer.getOption === 'function') {
+                        const trackList = ytPlayer.getOption('captions', 'tracklist');
+                        console.log("getOption('captions', 'tracklist') result:", trackList);
+                    } else {
+                        console.log("ytPlayer.getOption is NOT a function.");
+                    }
                 }
+
+                srtTrackList.innerHTML = '<div style="text-align: center; color: #38bdf8; padding: 20px;">Diagnostic logged to console! Check Inspector.</div>';
+
             } catch (err) {
-                console.error('Native track list error:', err);
-                srtTrackList.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px;">Load the video player first, then tap Extract SRT.</div>';
+                console.error("Diagnostic error caught safely:", err);
+                srtTrackList.innerHTML = `<div style="text-align: center; color: #ff4d4d; padding: 20px;">Logged error: ${err.message}</div>`;
             }
         }, 800);
     });
