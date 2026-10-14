@@ -14,7 +14,7 @@
             left: 0;
             width: 100%;
             box-sizing: border-box;
-            background: #1e1e1ef0;
+            background: #1e1e1e;
             padding: 10px 15px;
             display: flex;
             flex-direction: column; /* Stack rows vertically */
@@ -301,6 +301,10 @@
             <button class="remove-btn" id="removeYtBtn" title="Remove YouTube Video">&#x2715;</button>
         </div>
     </div>
+
+    <div class="file-row">
+        <button id="loadTxtBtn" type="button" style="width: 100%;">URL.txt</button>
+    </div>
     
     <div class="file-row">
         <label>SRT 1 (Top): <input type="file" id="srtFile1" accept=".srt"></label>
@@ -534,6 +538,50 @@
                 srtTrackList.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px;">Load the video player first, then tap Extract SRT.</div>';
             }
         }, 800);
+    });
+
+    // 1. Create a helper function to trigger the file picker and read the text file
+    function loadUrlFromTextFile(callback) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.txt';
+        
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const url = event.target.result.trim();
+                if (url) {
+                    callback(url);
+                } else {
+                    alert('The selected text file is empty.');
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    }
+
+    document.getElementById('loadTxtBtn').addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.txt';
+        
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('ytUrlInput').value = event.target.result.trim();
+            };
+            reader.readAsText(file);
+        };
+        
+        input.click();
     });
 
     closeSrtModalBtn.addEventListener('click', () => {
