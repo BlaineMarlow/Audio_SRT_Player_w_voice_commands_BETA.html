@@ -315,6 +315,11 @@
         <label>SRT 2 (Bottom): <input type="file" id="srtFile2" accept=".srt"></label>
         <button class="remove-btn" id="removeSrt2Btn" title="Remove SRT 2">&#x2715;</button>
     </div>
+    
+    <div class="file-row">
+        <label>Dual SRT (Combined): <input type="file" id="dualSrtFile" accept=".srt"></label>
+        <button class="remove-btn" id="removeDualSrtBtn" title="Remove Dual SRT">&#x2715;</button>
+    </div>
 </div>
 
 <div id="youtube-container">
@@ -404,6 +409,7 @@
     const audioFile = document.getElementById('audioFile');
     const srtFile1 = document.getElementById('srtFile1');
     const srtFile2 = document.getElementById('srtFile2');
+    const dualSrtFile = document.getElementById('dualSrtFile');
     const audioPlayer = document.getElementById('audioPlayer');
     const subContainer = document.getElementById('subtitle-container');
     const toggleBtn = document.getElementById('toggle-file-tray');
@@ -863,6 +869,30 @@
         }
     });
 
+    dualSrtFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            mostRecentFileName = file.name;
+            localStorage.setItem('mostRecentFileName', mostRecentFileName);
+            localStorage.setItem('dual_srt_name', file.name);
+            
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const rawText = evt.target.result;
+                localStorage.setItem('dual_srt_text', rawText);
+                
+                // Parse both tracks simultaneously from the single file
+                const result = parseDualSRT(rawText);
+                subs1 = result.subs1;
+                subs2 = result.subs2;
+                
+                buildTimeline();
+                loadMarksForFile(file.name);
+            };
+            reader.readAsText(file);
+        }
+    });
+
     document.getElementById('removeAudioBtn').addEventListener('click', () => {
         audioPlayer.src = '';
         audioFile.value = '';
@@ -882,6 +912,15 @@
         srtFile2.value = '';
         localStorage.removeItem('srt2_name');
         localStorage.removeItem('srt2_text');
+        buildTimeline();
+    });
+
+    document.getElementById('removeDualSrtBtn').addEventListener('click', () => {
+        subs1 = [];
+        subs2 = [];
+        dualSrtFile.value = '';
+        localStorage.removeItem('dual_srt_name');
+        localStorage.removeItem('dual_srt_text');
         buildTimeline();
     });
 
@@ -937,6 +976,33 @@
             }
         }
         return parsed;
+    }
+
+    function parseDualSRT(data) {
+        const cleaned = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const blocks = cleaned.split('\n\n');
+        const parsed1 = [];
+        const parsed2 = [];
+
+        for (let block of blocks) {
+            const lines = block.split('\n');
+            // Requires index, timestamp, plus at least two text lines (Spanish & English)
+            if (lines.length >= 4) {
+                const timeLine = lines[1];
+                const text1 = lines[2];                    // Spanish (Slot 1)
+                const text2 = lines.slice(3).join(' ');    // English (Slot 2)
+
+                const match = timeLine.match(new RegExp("(\\d{2}):(\\d{2}):(\\d{2}),(\\d{3}) --> (\\d{2}):(\\d{2}):(\\d{2}),(\\d{3})"));
+                if (match) {
+                    const start = parseInt(match[1]) * 3600 + parseInt(match[2]) * 60 + parseInt(match[3]) + parseInt(match[4]) / 1000;
+                    const end = parseInt(match[5]) * 3600 + parseInt(match[6]) * 60 + parseInt(match[7]) + parseInt(match[8]) / 1000;
+                    
+                    parsed1.push({ start, end, text: text1 });
+                    parsed2.push({ start, end, text: text2 });
+                }
+            }
+        }
+        return { subs1: parsed1, subs2: parsed2 };
     }
 
     function buildTimeline() {
